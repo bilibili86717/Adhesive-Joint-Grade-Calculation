@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#3b82f6">
 <title>粘接接头等级划分计算器</title>
 <link rel="manifest" href="./manifest.json">
+<script>window.onload=function(){document.body.style.height="297mm";document.body.style.overflow="hidden";}</script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: "Microsoft YaHei", "SimHei", sans-serif; background: #f5f7fa; min-height: 100vh; }
@@ -331,6 +332,7 @@ function buildPdfPageHtml() {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>粘接接头等级划分报告</title>
+<script>window.onload=function(){document.body.style.height="297mm";document.body.style.overflow="hidden";}</script>
 <style>
 html{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body{margin:0;padding:0;font-family:"SimSun","宋体",serif;color:#222;line-height:1.35;font-size:12px;background:#fff}
@@ -341,7 +343,7 @@ div,table,tr,td,th{box-sizing:border-box}
 .toolbar button.back:hover{opacity:.9}
 .toolbar button.primary{background:#10b981;color:#fff}
 .toolbar button.primary:hover{background:#059669}
-.print-page{width:210mm;max-width:210mm;height:297mm;max-height:297mm;margin:0;padding:12mm;box-sizing:border-box;overflow:hidden}
+.print-page{width:210mm;height:297mm;margin:0;padding:10mm;box-sizing:border-box;overflow:hidden;position:absolute;top:0;left:0}
 .title{text-align:center;font-size:17px;font-weight:bold;margin-bottom:6px}
 .section-title{font-size:12px;font-weight:bold;color:#1e3a8a;margin-top:8px;margin-bottom:4px;border-bottom:2px solid #3b82f6;padding-bottom:2px}
 .info-row{display:grid;grid-template-columns:110px 1fr;padding:2px 0;border-bottom:1px dashed #ddd;font-size:12px}
@@ -354,41 +356,32 @@ th{background:#dbeafe;font-weight:bold;color:#1e3a8a;font-size:11px}
 .result-value{font-size:17px;font-weight:bold;color:#166534;margin:2px 0}
 .signature{margin-top:10px;text-align:center;font-size:11px}
 @media print{
-  html,body{margin:0;padding:0;width:210mm;height:297mm;overflow:hidden;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{page-break-after:avoid!important;break-after:avoid!important}
+  @page{size:A4!important;margin:0!important;padding:0!important}
+  html,body{margin:0!important;padding:0!important;width:210mm!important;height:297mm!important;overflow:hidden!important;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{page-break-after:avoid!important;break-after:avoid!important;page-break-before:avoid!important}
   .toolbar{display:none!important}
-  .print-page{width:210mm;height:297mm;margin:0;padding:12mm;box-sizing:border-box;overflow:hidden;page-break-after:avoid}
-  .print-page:last-child{page-break-after:auto}
+  .print-page{width:210mm!important;height:297mm!important;margin:0!important;padding:10mm!important;box-sizing:border-box!important;overflow:hidden!important;page-break-inside:avoid!important;page-break-after:avoid!important}
+  *{page-break-inside:avoid!important}
 }
 @page{
   size:A4 portrait;
-  margin:0;
-  margin-top:0;
-  margin-bottom:0;
-  margin-left:0;
-  margin-right:0;
-  padding:0;
-  marks:none;
-  bleed:0;
-  trimbleed:0;
-  cropmarks:none;
-  @top-left{content:"";}
-  @top-left-corner{content:"";}
-  @top-center{content:"";}
-  @top-right{content:"";}
-  @top-right-corner{content:"";}
-  @bottom-left{content:"";}
-  @bottom-left-corner{content:"";}
-  @bottom-center{content:"";}
-  @bottom-right{content:"";}
-  @bottom-right-corner{content:"";}
+  margin:0!important;
+  padding:0!important;
+  max-height:297mm!important;
+  @top-left{content:"";display:none}
+  @top-center{content:"";display:none}
+  @top-right{content:"";display:none}
+  @bottom-left{content:"";display:none}
+  @bottom-center{content:"";display:none}
+  @bottom-right{content:"";display:none}
+  @top-left-corner{content:"";display:none}
+  @top-right-corner{content:"";display:none}
+  @bottom-left-corner{content:"";display:none}
+  @bottom-right-corner{content:"";display:none}
 }
-@page:first{size:A4 portrait;margin:0;padding:0}
-@page:left{margin:0}
-@page:right{margin:0}
 </style>
 </head>
-<body onkeydown="if(event.key==='Escape'){window.close();}">
+<body onkeydown="if(event.key==='Escape'){window.close();}" onbeforeprint="document.body.style.height='297mm';document.body.style.overflow='hidden';">
 <div class="toolbar">
   <button class="back" onclick="window.close()">← 关闭</button>
   <button class="primary" onclick="window.print()">🖨️ 打印 / 导出PDF</button>
