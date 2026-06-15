@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3b82f6">
+<title>粘接接头等级划分计算器</title>
+<link rel="manifest" href="./manifest.json">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Microsoft YaHei", "SimHei", sans-serif; background: #f5f7fa; min-height: 100vh; }
+.header { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 20px; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+.header h1 { font-size: 18px; font-weight: 600; }
+.container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
+.card { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 16px; }
+.card-title { font-size: 16px; font-weight: 600; color: #1e3a8a; border-bottom: 2px solid #dbeafe; padding-bottom: 10px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.card-title::before { content: ''; width: 4px; height: 18px; background: #3b82f6; border-radius: 2px; }
+.form-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
+.form-row label { font-size: 14px; color: #374151; font-weight: 500; }
+.form-row input, .form-row select { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; }
+.form-row input:focus, .form-row select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.form-row select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%236b7280' d='M10 12l-5-5 1.41-1.41L10 9.17l3.59-3.58L15 7l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+.btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
+.btn-secondary { background: #f3f4f6; color: #374151; }
+.btn-secondary:hover { background: #e5e7eb; }
+.btn-group { display: flex; gap: 12px; margin-top: 16px; }
+.result-section { margin-top: 16px; padding: 16px; background: #f8fafc; border-radius: 8px; }
+.result-label { font-size: 14px; color: #64748b; margin-bottom: 8px; }
+.result-value { font-size: 28px; font-weight: 700; color: #1e3a8a; }
+.result-value.A1 { color: #dc2626; }
+.result-value.A2 { color: #3b82f6; }
+.result-value.A3 { color: #2563eb; }
+.result-value.Z { color: #64748b; }
+.calculated-label { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+.table-wrapper { overflow-x: auto; margin-top: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+th { background: #f1f5f9; font-weight: 600; color: #475569; }
+tr:hover { background: #f8fafc; }
+.footer { text-align: center; padding: 20px; color: #9ca3af; font-size: 12px; }
+@media (min-width: 640px) { .form-row { grid-template-columns: 180px 1fr; align-items: center; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>粘接接头等级划分计算器</h1>
+</div>
+<div class="container">
+  <div class="card">
+    <div class="card-title">基本信息</div>
+    <div class="form-row">
+      <label>项目名称:</label>
+      <input type="text" id="projectName" placeholder="请输入项目名称">
+    </div>
+    <div class="form-row">
+      <label>部件名称:</label>
+      <input type="text" id="partName" placeholder="请输入部件名称">
+    </div>
+    <div class="form-row">
+      <label>图纸号:</label>
+      <input type="text" id="drawingNo" placeholder="请输入图纸号">
+    </div>
+    <div class="form-row">
+      <label>粘接工程师:</label>
+      <input type="text" id="engineer" placeholder="请输入工程师姓名">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">评价指标</div>
+    <div class="form-row">
+      <label>1. 粘接功能评价:</label>
+      <select id="bondingFunction">
+        <option value="1">密封</option>
+        <option value="2">粘接</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>2. 粘接防护评价:</label>
+      <select id="bondingProtection">
+        <option value="1">附加防护措施</option>
+        <option value="2">无附加防护措施</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>3. 粘接位置评价:</label>
+      <select id="bondingLocation">
+        <option value="1">车内封闭/保护区域</option>
+        <option value="2">车外封闭/保护区域</option>
+        <option value="3">车内敞开/可自由进入的区域(地板上方1.5m以内)</option>
+        <option value="4">车内敞开/可自由进入的区域(地板上方1.5m以上)</option>
+        <option value="5">车外敞开/可自由进入的区域</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>4. 粘接件重量评价:</label>
+      <select id="bondingWeight">
+        <option value="1">小于1kg</option>
+        <option value="2">小于10kg</option>
+        <option value="3">小于50kg</option>
+        <option value="4">大于50kg</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>5. 车辆运行损害评价:</label>
+      <select id="vehicleDamage">
+        <option value="1">无影响</option>
+        <option value="2">轻微损害</option>
+        <option value="3">影响安全运行</option>
+        <option value="4">危害安全运行</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>6. 经济损失评价:</label>
+      <select id="economicLoss">
+        <option value="1">无影响</option>
+        <option value="2">轻微损害</option>
+        <option value="3">较大损失</option>
+        <option value="4">严重损失</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>7. 人员伤害评价:</label>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <input type="text" id="personnelInjury" readonly value="--" style="width: 80px; background: #f3f4f6;">
+        <button class="btn btn-secondary" onclick="calculateInjury()">计算伤害评价</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="calculateGrade()">计算等级</button>
+  </div>
+  <div class="card">
+    <div class="card-title">计算结果</div>
+    <div class="result-section">
+      <div class="result-label">计算得出的级别:</div>
+      <div class="result-value" id="calculatedGrade">--</div>
+      <div class="calculated-label">系统自动计算结果</div>
+    </div>
+    <div class="form-row" style="margin-top: 16px;">
+      <label>最终等级 (人工选择):</label>
+      <select id="finalGrade">
+        <option value="">请选择等级</option>
+        <option value="A1">A1</option>
+        <option value="A2">A2</option>
+        <option value="A3">A3</option>
+        <option value="Z">Z(无级)</option>
+      </select>
+    </div>
+    <div class="btn-group" style="justify-content: flex-end;">
+      <button class="btn btn-secondary" onclick="exportToWord()">导出 Word</button>
+      <button class="btn btn-primary" onclick="exportToPDF()">导出 PDF</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">评价准则对照表</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>编号</th>
+            <th>评价项目</th>
+            <th>评价准则(分值)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>粘接功能</td><td>密封(1) / 粘接(2)</td></tr>
+          <tr><td>2</td><td>粘接防护</td><td>附加防护(1) / 无附加防护(2)</td></tr>
+          <tr><td>3</td><td>粘接位置</td><td>车内封闭(1) / 车外封闭(2) / 车内敞开≤1.5m(3) / 车内敞开>1.5m(4) / 车外敞开(5)</td></tr>
+          <tr><td>4</td><td>粘接件重量</td><td>&lt;1kg(1) / &lt;10kg(2) / &lt;50kg(3) / &gt;50kg(4)</td></tr>
+          <tr><td>5</td><td>人员伤害</td><td>无伤害(1) / 1个月内消除(2) / 超过1个月(3) / 永久性伤害(4)</td></tr>
+          <tr><td>6</td><td>车辆损害</td><td>无影响(1) / 轻微(2) / 影响安全(3) / 危害安全(4)</td></tr>
+          <tr><td>7</td><td>经济损失</td><td>无影响(1) / 轻微(2) / 较大(3) / 严重(4)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="footer">
+  本计算结果仅供参考
+</div>
+<script>
+function calculateInjury() {
+  const I12 = parseInt(document.getElementById('bondingFunction').value);
+  const I13 = parseInt(document.getElementById('bondingProtection').value);
+  const I14 = parseInt(document.getElementById('bondingLocation').value);
+  const I16 = parseInt(document.getElementById('bondingWeight').value);
+  
+  let injury = 1;
+  
+  if ((I12 === 2 && I13 === 2 && I14 === 5 && [1,2,3,4].includes(I16)) || 
+      (I12 === 2 && I13 === 2 && I14 === 4 && [3,4].includes(I16))) {
+    injury = 4;
+  } else if ((I12 === 2 && I13 === 2 && I14 === 4 && I16 === 2) || 
+             (I12 === 2 && I13 === 2 && I14 === 3 && [3,4].includes(I16))) {
+    injury = 3;
+  } else if ((I12 === 2 && I13 === 2 && I14 === 4 && I16 === 1) || 
+             (I12 === 2 && I13 === 2 && I14 === 3 && [1,2].includes(I16))) {
+    injury = 2;
+  } else {
+    injury = 1;
+  }
+  
+  document.getElementById('personnelInjury').value = injury;
+}
+
+function calculateGrade() {
+  calculateInjury();
+  const I19 = parseInt(document.getElementById('personnelInjury').value);
+  const I20 = parseInt(document.getElementById('vehicleDamage').value);
+  const I21 = parseInt(document.getElementById('economicLoss').value);
+  
+  let grade = 'A2';
+  
+  if (I19 === 4 || I20 === 4 || I21 === 4) {
+    grade = 'A1';
+  } else if ((I19 === 1 && I20 === 1 && I21 === 2) ||
+             (I19 === 1 && I20 === 2 && I21 === 2) ||
+             (I19 === 1 && I20 === 2 && I21 === 1)) {
+    grade = 'A3';
+  } else if (I19 === 1 && I20 === 1 && I21 === 1) {
+    grade = 'Z';
+  } else {
+    grade = 'A2';
+  }
+  
+  const resultEl = document.getElementById('calculatedGrade');
+  resultEl.textContent = grade;
+  resultEl.className = 'result-value ' + grade;
+  document.getElementById('finalGrade').value = grade;
+}
+
+function buildWordHtml() {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const projectName = document.getElementById('projectName').value || '-';
+  const partName = document.getElementById('partName').value || '-';
+  const drawingNo = document.getElementById('drawingNo').value || '-';
+  const engineer = document.getElementById('engineer').value || '-';
+  const calculatedGrade = document.getElementById('calculatedGrade').textContent || '-';
+  const finalGrade = document.getElementById('finalGrade').value || '-';
+  
+  const I12 = document.getElementById('bondingFunction').options[document.getElementById('bondingFunction').selectedIndex].text;
+  const I13 = document.getElementById('bondingProtection').options[document.getElementById('bondingProtection').selectedIndex].text;
+  const I14 = document.getElementById('bondingLocation').options[document.getElementById('bondingLocation').selectedIndex].text;
+  const I16 = document.getElementById('bondingWeight').options[document.getElementById('bondingWeight').selectedIndex].text;
+  const I19 = document.getElementById('personnelInjury').value || '-';
+  const I20 = document.getElementById('vehicleDamage').options[document.getElementById('vehicleDamage').selectedIndex].text;
+  const I21 = document.getElementById('economicLoss').options[document.getElementById('economicLoss').selectedIndex].text;
+  
+  return `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><title>粘接接头等级划分报告</title>
+<meta name=ProgId content=Word.Document>
+<style>
+body{font-family:"SimSun","宋体",serif;font-size:13px;line-height:1.5}
+.title{text-align:center;font-size:20px;font-weight:bold;margin-bottom:20px}
+.section-title{font-size:15px;font-weight:bold;color:#1e3a8a;margin-top:16px;margin-bottom:8px;border-bottom:2px solid #3b82f6;padding-bottom:4px}
+.info-row{display:grid;grid-template-columns:180px 1fr;padding:6px 0;border-bottom:1px dashed #ddd}
+.info-label{font-weight:500;color:#475569}
+.table-wrapper{margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left}
+th{background:#dbeafe;font-weight:bold;color:#1e3a8a}
+.result-box{background:#ecfdf5;border-left:4px solid #10b981;padding:12px;margin-top:16px;border-radius:4px}
+.result-label{font-size:14px;color:#374151}
+.result-value{font-size:28px;font-weight:bold;color:#166534;margin:8px 0}
+.signature{margin-top:24px;text-align:center}
+.note{font-size:11px;color:#666;margin-top:16px;padding-top:12px;border-top:1px solid #ccc}
+</style></head>
+<body>
+<div class="title">粘接接头等级划分报告</div>
+<div style="text-align:right;margin-bottom:16px">报告日期：${dateStr}</div>
+<div class="section-title">一、基本信息</div>
+<div class="info-row"><span class="info-label">项目名称：</span><span>${projectName}</span></div>
+<div class="info-row"><span class="info-label">部件名称：</span><span>${partName}</span></div>
+<div class="info-row"><span class="info-label">图纸号：</span><span>${drawingNo}</span></div>
+<div class="info-row"><span class="info-label">粘接工程师：</span><span>${engineer}</span></div>
+<div class="section-title">二、评价指标</div>
+<div class="table-wrapper">
+<table>
+<tr><th>编号</th><th>评价项目</th><th>评价结果</th></tr>
+<tr><td>1</td><td>粘接功能评价</td><td>${I12}</td></tr>
+<tr><td>2</td><td>粘接防护评价</td><td>${I13}</td></tr>
+<tr><td>3</td><td>粘接位置评价</td><td>${I14}</td></tr>
+<tr><td>4</td><td>粘接件重量评价</td><td>${I16}</td></tr>
+<tr><td>5</td><td>人员伤害评价</td><td>等级${I19}</td></tr>
+<tr><td>6</td><td>车辆运行损害评价</td><td>${I20}</td></tr>
+<tr><td>7</td><td>经济损失评价</td><td>${I21}</td></tr>
+</table>
+</div>
+<div class="section-title">三、评定结果</div>
+<div class="result-box">
+<div class="result-label">计算得出的级别：</div>
+<div class="result-value">${calculatedGrade}</div>
+<div class="result-label">最终评定等级：</div>
+<div class="result-value">${finalGrade}</div>
+</div>
+<div class="signature">
+<div>编制人：________ 审核人：________ 批准人：________</div>
+</div>
+<div class="note">本计算结果仅供参考。</div>
+</body></html>`;
+}
+
+function saveFile(blob, defaultName, pickerTypes, successMsg, fallbackMsg) {
+  try {
+    if (window.showSaveFilePicker) {
+      window.showSaveFilePicker({ suggestedName: defaultName, types: pickerTypes })
+        .then(handle => handle.createWritable())
+        .then(writable => { writable.write(blob); return writable.close(); })
+        .then(() => alert(successMsg))
+        .catch(err => { if (err.name !== 'AbortError') throw err; });
+      return;
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') console.error(err);
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = defaultName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+  alert(fallbackMsg);
+}
+
+function exportToWord() {
+  const html = buildWordHtml();
+  const blob = new Blob(['\ufeff' + html], { type: 'application/msword;charset=utf-8' });
+  saveFile(blob, `粘接等级报告_${new Date().toISOString().slice(0,10)}.doc`,
+    [{ description: 'Word文档', accept: { 'application/msword': ['.doc'] } }],
+    '报告已保存到您选择的目录',
+    '报告已开始下载（请用 Microsoft Word / WPS 打开）');
+}
+
+function buildPdfPageHtml() {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const projectName = document.getElementById('projectName').value || '-';
+  const partName = document.getElementById('partName').value || '-';
+  const drawingNo = document.getElementById('drawingNo').value || '-';
+  const engineer = document.getElementById('engineer').value || '-';
+  const calculatedGrade = document.getElementById('calculatedGrade').textContent || '-';
+  const finalGrade = document.getElementById('finalGrade').value || '-';
+  
+  const I12 = document.getElementById('bondingFunction').options[document.getElementById('bondingFunction').selectedIndex].text;
+  const I13 = document.getElementById('bondingProtection').options[document.getElementById('bondingProtection').selectedIndex].text;
+  const I14 = document.getElementById('bondingLocation').options[document.getElementById('bondingLocation').selectedIndex].text;
+  const I16 = document.getElementById('bondingWeight').options[document.getElementById('bondingWeight').selectedIndex].text;
+  const I19 = document.getElementById('personnelInjury').value || '-';
+  const I20 = document.getElementById('vehicleDamage').options[document.getElementById('vehicleDamage').selectedIndex].text;
+  const I21 = document.getElementById('economicLoss').options[document.getElementById('economicLoss').selectedIndex].text;
+  
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>粘接接头等级划分报告</title>
+<style>
+html,body,div,p,h1,h2,table{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"SimSun","宋体",serif;color:#222;line-height:1.5;font-size:13px;background:#fff}
+.toolbar{position:sticky;top:0;display:flex;gap:12px;padding:12px 16px;background:#3b82f6;color:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1);z-index:100}
+.toolbar button{border:none;padding:8px 16px;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer}
+.toolbar button.back{background:#1e3a8a;color:#fff}
+.toolbar button.back:hover{opacity:.9}
+.toolbar button.primary{background:#10b981;color:#fff}
+.toolbar button.primary:hover{background:#059669}
+.report{max-width:780px;margin:20px auto;padding:8px 20px}
+.title{text-align:center;font-size:20px;font-weight:bold;margin-bottom:8px}
+.meta{text-align:center;font-size:12px;color:#555;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:bold;color:#1e3a8a;margin-top:16px;margin-bottom:8px;border-bottom:2px solid #3b82f6;padding-bottom:4px}
+.info-row{display:grid;grid-template-columns:180px 1fr;padding:6px 0;border-bottom:1px dashed #ddd}
+.info-label{font-weight:500;color:#475569}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left}
+th{background:#dbeafe;font-weight:bold;color:#1e3a8a}
+.result-box{background:#ecfdf5;border-left:4px solid #10b981;padding:12px;margin-top:16px;border-radius:4px}
+.result-label{font-size:14px;color:#374151}
+.result-value{font-size:28px;font-weight:bold;color:#166534;margin:8px 0}
+.signature{margin-top:24px;text-align:center;font-size:12px}
+.note{font-size:11px;color:#666;margin-top:16px;padding-top:12px;border-top:1px solid #ccc}
+@media print{.toolbar{display:none!important}.report{max-width:100%;margin:0;padding:0}}
+@page{margin:1.5cm 1.5cm;size:A4;
+  @top-left{content:""} @top-center{content:""} @top-right{content:""}
+  @bottom-left{content:""} @bottom-center{content:counter(page) " / " counter(pages)} @bottom-right{content:""}}
+</style>
+</head>
+<body onkeydown="if(event.key==='Escape'){history.back();}">
+<div class="toolbar">
+  <button class="back" onclick="window.history.back()">← 返回</button>
+  <button class="primary" onclick="window.print()">🖨️ 打印 / 导出PDF</button>
+</div>
+<div class="report">
+  <div class="title">粘接接头等级划分报告</div>
+  <div class="meta">报告日期：${dateStr}</div>
+  <div class="section-title">一、基本信息</div>
+  <div class="info-row"><span class="info-label">项目名称：</span><span>${projectName}</span></div>
+  <div class="info-row"><span class="info-label">部件名称：</span><span>${partName}</span></div>
+  <div class="info-row"><span class="info-label">图纸号：</span><span>${drawingNo}</span></div>
+  <div class="info-row"><span class="info-label">粘接工程师：</span><span>${engineer}</span></div>
+  <div class="section-title">二、评价指标</div>
+  <table>
+  <tr><th>编号</th><th>评价项目</th><th>评价结果</th></tr>
+  <tr><td>1</td><td>粘接功能评价</td><td>${I12}</td></tr>
+  <tr><td>2</td><td>粘接防护评价</td><td>${I13}</td></tr>
+  <tr><td>3</td><td>粘接位置评价</td><td>${I14}</td></tr>
+  <tr><td>4</td><td>粘接件重量评价</td><td>${I16}</td></tr>
+  <tr><td>5</td><td>人员伤害评价</td><td>等级${I19}</td></tr>
+  <tr><td>6</td><td>车辆运行损害评价</td><td>${I20}</td></tr>
+  <tr><td>7</td><td>经济损失评价</td><td>${I21}</td></tr>
+  </table>
+  <div class="section-title">三、评定结果</div>
+  <div class="result-box">
+  <div class="result-label">计算得出的级别：</div>
+  <div class="result-value">${calculatedGrade}</div>
+  <div class="result-label">最终评定等级：</div>
+  <div class="result-value">${finalGrade}</div>
+  </div>
+  <div class="signature">
+  <div>编制人：________ 审核人：________ 批准人：________</div>
+  </div>
+  <div class="note">本计算结果仅供参考。</div>
+</div>
+</body></html>`;
+}
+
+function exportToPDF() {
+  const html = buildPdfPageHtml();
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.location.href = url;
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js');
+  });
+}
+</script>
+</body>
+</html>
