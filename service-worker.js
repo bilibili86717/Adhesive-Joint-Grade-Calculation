@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bonding-grade-v1';
+const CACHE_NAME = 'bonding-grade-v2';
 const urlsToCache = [
   './',
   './index.html',
