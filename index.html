@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#3b82f6">
 <title>粘接接头等级划分计算器</title>
 <link rel="manifest" href="./manifest.json">
-<script>window.onload=function(){document.body.style.height="297mm";document.body.style.overflow="hidden";}</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(regs){for(var i=0;i<regs.length;i++)regs[i].unregister();});}if("caches" in window){caches.keys().then(function(names){for(var i=0;i<names.length;i++)caches.delete(names[i]);});}document.addEventListener("DOMContentLoaded",function(){document.body.style.height="auto";document.body.style.overflow="visible";document.body.style.overflowY="auto";document.documentElement.style.height="auto";document.documentElement.style.overflow="visible";});</script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: "Microsoft YaHei", "SimHei", sans-serif; background: #f5f7fa; min-height: 100vh; }
+body { font-family: "Microsoft YaHei", "SimHei", sans-serif; background: #f5f7fa; min-height: 100vh; overflow-x: hidden; overflow-y: auto !important; height: auto !important; }
 .header { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 20px; box-shadow: 0 2px 8px rgba(59,130,246,0.3); text-align: center; }
 .header h1 { font-size: 18px; font-weight: 600; }
 .container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
@@ -277,18 +277,21 @@ th{background:#dbeafe;font-weight:bold;color:#1e3a8a}
 </body></html>`;
 }
 
-function saveFile(blob, defaultName, pickerTypes, successMsg, fallbackMsg) {
+async function saveFile(blob, defaultName, pickerTypes, successMsg, fallbackMsg) {
   try {
     if (window.showSaveFilePicker) {
-      window.showSaveFilePicker({ suggestedName: defaultName, types: pickerTypes })
-        .then(handle => handle.createWritable())
-        .then(writable => { writable.write(blob); return writable.close(); })
-        .then(() => alert(successMsg))
-        .catch(err => { if (err.name !== 'AbortError') throw err; });
+      const handle = await window.showSaveFilePicker({
+        suggestedName: defaultName,
+        types: pickerTypes
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      alert(successMsg);
       return;
     }
   } catch (err) {
-    if (err.name !== 'AbortError') console.error(err);
+    if (err && err.name === 'AbortError') return;
   }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -310,13 +313,13 @@ function exportToWord() {
 }
 
 function buildPdfPageHtml() {
-  const dateStr = new Date().toISOString().slice(0, 10);
   const projectName = document.getElementById('projectName').value || '-';
   const partName = document.getElementById('partName').value || '-';
   const drawingNo = document.getElementById('drawingNo').value || '-';
   const engineer = document.getElementById('engineer').value || '-';
   const calculatedGrade = document.getElementById('calculatedGrade').textContent || '-';
   const finalGrade = document.getElementById('finalGrade').value || '-';
+  const dateStr = new Date().toISOString().slice(0, 10);
   
   const I12 = document.getElementById('bondingFunction').options[document.getElementById('bondingFunction').selectedIndex].text;
   const I13 = document.getElementById('bondingProtection').options[document.getElementById('bondingProtection').selectedIndex].text;
@@ -332,68 +335,53 @@ function buildPdfPageHtml() {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>粘接接头等级划分报告</title>
-<script>window.onload=function(){document.body.style.height="297mm";document.body.style.overflow="hidden";}</script>
 <style>
-html{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{margin:0;padding:0;font-family:"SimSun","宋体",serif;color:#222;line-height:1.35;font-size:12px;background:#fff}
-div,table,tr,td,th{box-sizing:border-box}
+html,body,div,p,h1,h2,h3{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"SimSun","宋体",serif;color:#222;line-height:1.4;font-size:13px;background:#fff}
 .toolbar{position:sticky;top:0;display:flex;gap:12px;padding:12px 16px;background:#3b82f6;color:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1);z-index:100}
 .toolbar button{border:none;padding:8px 16px;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer}
 .toolbar button.back{background:#1e3a8a;color:#fff}
 .toolbar button.back:hover{opacity:.9}
 .toolbar button.primary{background:#10b981;color:#fff}
 .toolbar button.primary:hover{background:#059669}
-.print-page{width:210mm;height:297mm;margin:0;padding:10mm;box-sizing:border-box;overflow:hidden;position:absolute;top:0;left:0}
-.title{text-align:center;font-size:17px;font-weight:bold;margin-bottom:6px}
-.section-title{font-size:12px;font-weight:bold;color:#1e3a8a;margin-top:8px;margin-bottom:4px;border-bottom:2px solid #3b82f6;padding-bottom:2px}
-.info-row{display:grid;grid-template-columns:110px 1fr;padding:2px 0;border-bottom:1px dashed #ddd;font-size:12px}
+.report{max-width:780px;margin:20px auto;padding:8px 20px}
+.title{text-align:center;font-size:20px;font-weight:bold;margin-bottom:4px}
+.meta{text-align:center;font-size:11px;color:#555;margin-bottom:2px}
+.signature{text-align:center;font-size:12px;color:#333;margin:6px 0 8px;letter-spacing:1px}
+h2{font-size:15px;border-bottom:2px solid #3b82f6;padding-bottom:2px;margin-top:10px;margin-bottom:4px;color:#1e3a8a;font-weight:bold}
+.info-row{display:grid;grid-template-columns:170px 1fr;padding:4px 10px;border-bottom:1px dashed #ddd}
 .info-label{font-weight:500;color:#475569}
-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:3px}
-th,td{border:1px solid #ddd;padding:3px 5px;text-align:left}
-th{background:#dbeafe;font-weight:bold;color:#1e3a8a;font-size:11px}
-.result-box{background:#ecfdf5;border-left:4px solid #10b981;padding:8px;margin-top:8px;border-radius:4px}
-.result-label{font-size:12px;color:#374151}
-.result-value{font-size:17px;font-weight:bold;color:#166534;margin:2px 0}
-.signature{margin-top:10px;text-align:center;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}
+th{background:#dbeafe;font-weight:bold;color:#1e3a8a}
+.result-box{background:#ecfdf5;border-left:4px solid #10b981;padding:8px 12px;border-radius:4px;margin-top:12px}
+.result-label{font-size:14px;color:#374151}
+.result-value{font-size:20px;font-weight:bold;color:#166534;margin:4px 0}
 @media print{
-  @page{size:A4!important;margin:0!important;padding:0!important}
-  html,body{margin:0!important;padding:0!important;width:210mm!important;height:297mm!important;overflow:hidden!important;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{page-break-after:avoid!important;break-after:avoid!important;page-break-before:avoid!important}
   .toolbar{display:none!important}
-  .print-page{width:210mm!important;height:297mm!important;margin:0!important;padding:10mm!important;box-sizing:border-box!important;overflow:hidden!important;page-break-inside:avoid!important;page-break-after:avoid!important}
-  *{page-break-inside:avoid!important}
+  .report{max-width:100%;margin:0;padding:0}
 }
 @page{
-  size:A4 portrait;
-  margin:0!important;
-  padding:0!important;
-  max-height:297mm!important;
-  @top-left{content:"";display:none}
-  @top-center{content:"";display:none}
-  @top-right{content:"";display:none}
-  @bottom-left{content:"";display:none}
-  @bottom-center{content:"";display:none}
-  @bottom-right{content:"";display:none}
-  @top-left-corner{content:"";display:none}
-  @top-right-corner{content:"";display:none}
-  @bottom-left-corner{content:"";display:none}
-  @bottom-right-corner{content:"";display:none}
+  margin:1.5cm 1.5cm;size:A4;
+  @top-left{content:""} @top-center{content:""} @top-right{content:""}
+  @bottom-left{content:""} @bottom-center{content:counter(page) " / " counter(pages)} @bottom-right{content:""}
 }
 </style>
 </head>
-<body onkeydown="if(event.key==='Escape'){window.close();}" onbeforeprint="document.body.style.height='297mm';document.body.style.overflow='hidden';">
+<body onkeydown="if(event.key==='Escape'){history.back();}">
 <div class="toolbar">
-  <button class="back" onclick="window.close()">← 关闭</button>
+  <button class="back" onclick="window.history.back()">← 返回</button>
   <button class="primary" onclick="window.print()">🖨️ 打印 / 导出PDF</button>
 </div>
-<div class="print-page">
+<div class="report">
   <div class="title">粘接接头等级划分报告</div>
-  <div class="section-title">一、基本信息</div>
+  <div class="meta">报告日期：${dateStr}</div>
+  <h2>一、基本信息</h2>
   <div class="info-row"><span class="info-label">项目名称：</span><span>${projectName}</span></div>
   <div class="info-row"><span class="info-label">部件名称：</span><span>${partName}</span></div>
   <div class="info-row"><span class="info-label">图纸号：</span><span>${drawingNo}</span></div>
   <div class="info-row"><span class="info-label">粘接工程师：</span><span>${engineer}</span></div>
-  <div class="section-title">二、评价指标</div>
+  <h2>二、评价指标</h2>
   <table>
   <tr><th>编号</th><th>评价项目</th><th>评价结果</th></tr>
   <tr><td>1</td><td>粘接功能评价</td><td>${I12}</td></tr>
@@ -404,7 +392,7 @@ th{background:#dbeafe;font-weight:bold;color:#1e3a8a;font-size:11px}
   <tr><td>6</td><td>车辆运行损害评价</td><td>${I20}</td></tr>
   <tr><td>7</td><td>经济损失评价</td><td>${I21}</td></tr>
   </table>
-  <div class="section-title">三、评定结果</div>
+  <h2>三、评定结果</h2>
   <div class="result-box">
   <div class="result-label">计算得出的级别：</div>
   <div class="result-value">${calculatedGrade}</div>
@@ -414,7 +402,7 @@ th{background:#dbeafe;font-weight:bold;color:#1e3a8a;font-size:11px}
   <div class="signature">
   <div>编制人：________ 审核人：________ 批准人：________</div>
   </div>
-  </div>
+</div>
 </body></html>`;
 }
 
@@ -422,7 +410,7 @@ function exportToPDF() {
   const html = buildPdfPageHtml();
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  window.location.href = url;
 }
 
 if ('serviceWorker' in navigator) {
